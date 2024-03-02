@@ -56,6 +56,11 @@ const HomeScreen = ({ navigation }) => {
         style={styles.logo}
         resizeMode="contain"
       />
+      <Image
+        source={require("../assets/ChoreUpLogo.png")}
+        style={styles.centerLogo}
+        resizeMode="contain"
+      />
       <Text style={styles.loginText}>Login or Sign Up</Text>
       <View style={styles.inputContainer}>
         <TextInput
@@ -71,10 +76,6 @@ const HomeScreen = ({ navigation }) => {
           )}
         </Animated.View>
       </View>
-      <View style={styles.middleContent}>
-        {/* Additional content in the middle of the page */}
-        <Text style={styles.middleText}>Additional Content Here</Text>
-      </View>
     </KeyboardAvoidingView>
   );
 };
@@ -87,23 +88,31 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   logo: {
-    width: 150, // Adjust size as needed
+    width: 350, // Adjust size as needed
+    top: -150,
+  },
+  centerLogo: {
+    width: 250,
+    height: 250,
+    verticalAlign: "middle",
   },
   loginText: {
     marginRight: "auto",
-    fontSize: 14,
+    fontSize: 20,
     marginBottom: 5,
+    bottom: -100,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
+    bottom: -100,
   },
   input: {
     flex: 1,
     height: 40,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#0079BF",
     borderRadius: 5,
     backgroundColor: "white",
     color: "black",
