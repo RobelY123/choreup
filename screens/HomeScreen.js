@@ -14,7 +14,7 @@ import {
 
 const HomeScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
-  const [isValidEmail, setIsValidEmail] = useState(false);
+  const [isValidEmail, setIsValidEmail] = useState(true);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const handleEmailChange = (text) => {
@@ -37,7 +37,7 @@ const HomeScreen = ({ navigation }) => {
   const navigate = new useNavigation();
   const handleNextPress = () => {
     if (isValidEmail) {
-      navigation.navigate("Tasks");
+      navigation.navigate("Groups");
     } else {
       // Handle invalid email input
     }
