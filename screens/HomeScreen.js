@@ -9,6 +9,7 @@ import {
   Image,
   Animated,
   KeyboardAvoidingView,
+  ScrollView,
 } from "react-native";
 
 const HomeScreen = ({ navigation }) => {
@@ -50,7 +51,11 @@ const HomeScreen = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior="position"
+      enabled={true}
+    >
       <Image
         source={require("../assets/logo.png")}
         style={styles.logo}
@@ -86,27 +91,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
+    marginBottom: 70,
   },
   logo: {
     width: 350, // Adjust size as needed
-    top: -150,
+    marginTop: -150,
+    marginBottom: 100,
   },
   centerLogo: {
     width: 250,
     height: 250,
-    verticalAlign: "middle",
+    marginHorizontal: 50,
   },
   loginText: {
     marginRight: "auto",
     fontSize: 20,
     marginBottom: 5,
-    bottom: -100,
+    bottom: -70,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
-    bottom: -100,
+    bottom: -70,
   },
   input: {
     flex: 1,

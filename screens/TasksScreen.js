@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Button } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Button, KeyboardAvoidingView } from "react-native";
 
 const TasksScreen = ({ navigation }) => {
   const [userName, setUserName] = useState("John Doe"); // Sample user name, replace with actual user data
