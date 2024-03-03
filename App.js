@@ -8,6 +8,8 @@ import LoginScreen from "./screens/LoginScreen";
 import SignupScreen from "./screens/SignupScreen";
 import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
 import ProfileScreen from "./screens/ProfileScreen";
+import TaskCreatorScreen from "./screens/TaskCreator";
+import TaskPage from "./screens/TaskPage";
 
 const Stack = createStackNavigator();
 
@@ -47,6 +49,8 @@ const App = () => {
           ),
         }}
       >
+      <Stack.Screen name="Task" component={TaskPage} />
+        <Stack.Screen name="TaskCreator" component={TaskCreatorScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Calendar" component={CalendarScreen} />

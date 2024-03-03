@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TextInput, Button, Image } from "react-native";
-import * as ImagePicker from "react-native-image-picker";
 
 const ProfileScreen = () => {
   const [name, setName] = useState("John Doe");
@@ -19,33 +18,11 @@ const ProfileScreen = () => {
     // Logic to save changes to the user's profile
   };
 
-  const openImagePicker = () => {
-    const options = {
-      title: "Select Profile Picture",
-      storageOptions: {
-        skipBackup: true,
-        path: "images",
-      },
-    };
-
-    ImagePicker.launchImageLibrary(options, (response) => {
-      if (response.didCancel) {
-        console.log("User cancelled image picker");
-      } else if (response.error) {
-        console.log("ImagePicker Error: ", response.error);
-      } else {
-        const source = { uri: response.uri };
-        setProfilePic(source);
-      }
-    });
-  };
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Profile</Text>
       <View style={styles.profilePicContainer}>
         <Image source={profilePic} style={styles.profilePic} />
-        <Button title="Change Picture" onPress={openImagePicker} />
       </View>
       <Text style={styles.loginText}>Username</Text>
       <TextInput
