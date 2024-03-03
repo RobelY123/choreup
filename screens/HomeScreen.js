@@ -11,12 +11,13 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
-const HomeScreen = () => {
+const HomeScreen = (props) => {
   const [email, setEmail] = useState("");
   const [isValidEmail, setIsValidEmail] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation();
 
+  const { user } = props.route.params;
   const handleEmailChange = (text) => {
     setEmail(text);
     setIsValidEmail(validateEmail(text));
@@ -62,22 +63,26 @@ const HomeScreen = () => {
         resizeMode="contain"
       />
       <Text style={styles.loginText}>Login or Sign Up</Text>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your email"
-          value={email}
-          autoCompleteType="email"
-          keyboardType="email-address"
-          placeholderTextColor="gray"
-          onChangeText={handleEmailChange}
-        />
-        <Animated.View style={[styles.nextButton, { opacity: fadeAnim }]}>
-          {isValidEmail && (
-            <Button title="→" onPress={handleNextPress} color="#007bff" />
-          )}
-        </Animated.View>
-      </View>
+      {user ? (
+        <Button title="Go to Groups" />
+      ) : (
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your email"
+            value={email}
+            autoCompleteType="email"
+            keyboardType="email-address"
+            placeholderTextColor="gray"
+            onChangeText={handleEmailChange}
+          />
+          <Animated.View style={[styles.nextButton, { opacity: fadeAnim }]}>
+            {isValidEmail && (
+              <Button title="→" onPress={handleNextPress} color="#007bff" />
+            )}
+          </Animated.View>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 };

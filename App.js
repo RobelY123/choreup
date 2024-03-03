@@ -23,9 +23,9 @@ const CustomHeader = ({ navigation, route, user, pfp }) => {
 
   const goToHome = () => {
     if (user) {
-      nav.navigate("Groups"); // Navigate to Groups if user is logged in
+      navigation.navigate("Groups"); // Navigate to Groups if user is logged in
     } else {
-      nav.navigate("Home"); // Navigate to Home if user is not logged in
+      navigation.navigate("Home"); // Navigate to Home if user is not logged in
     }
   };
 
@@ -60,51 +60,29 @@ const CustomHeader = ({ navigation, route, user, pfp }) => {
 const App = () => {
   const [user, setUser] = useState(null);
   const [profilePic, setProfilePic] = useState("default");
-  useEffect(() => {
-    const auth = getAuth();
-    const user = auth.currentUser;
 
-    if (user) {
-      fetchUserData(user.uid);
-    }
-  }, [user]);
-
-  const fetchUserData = async (email) => {
-    try {
-      const userDocRef = doc(FIREBASE_DB, "users", email);
-      const userDocSnap = await getDoc(userDocRef);
-
-      if (userDocSnap.exists()) {
-        const userData = userDocSnap.data();
-        setProfilePic(userData.profilePictureURL || null);
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      // Handle error
-    }
-  };
-  // Define the setUser function
-  const handleSetUser = (newUser) => {
-    setUser(newUser);
-  };
+  // Other code remains unchanged
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, (user) => {
       // Call setUser function to update the user state
-      handleSetUser(user);
+      setUser(user);
     });
 
     return unsubscribe;
   }, []);
 
   const checkUserAccess = (route) => {
-    if (!user && route.name === "Groups") {
+    // If user is logged in and tries to access "Login" or "Signup", redirect to "Groups"
+    if (user && (route.name === "Login" || route.name === "Signup")) {
+      return "Groups";
+    }
+    // If user is not logged in and tries to access "Groups", redirect to "Login"
+    else if (!user && route.name === "Groups") {
       return "Login";
     }
     return route.name;
   };
-
-  console.log(user);
   return (
     <NavigationContainer>
       <Stack.Navigator
@@ -135,7 +113,7 @@ const App = () => {
           })}
         />
         <Stack.Screen name="Profile" component={ProfileScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Home"  component={HomeScreen} initialParams={{user}} />
         <Stack.Screen name="Calendar" component={CalendarScreen} />
         <Stack.Screen
           name="Groups"
@@ -145,13 +123,24 @@ const App = () => {
           })}
         />
         <Stack.Screen name="CreateGroup" component={CreateGroupScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Signup" component={SignupScreen} />
+        {user ? null : (
+    <>
+      <Stack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{ headerShown: false }} // Hide the header for these screens
+      />
+      <Stack.Screen
+        name="Signup"
+        component={SignupScreen}
+        options={{ headerShown: false }} // Hide the header for these screens
+      />
+    </>
+  )}
       </Stack.Navigator>
     </NavigationContainer>
   );
 };
-
 const styles = StyleSheet.create({
   header: {
     flexDirection: "row",

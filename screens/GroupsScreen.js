@@ -26,89 +26,48 @@ const GroupsScreen = ({ navigation }) => {
 
   const currentUser = FIREBASE_AUTH.currentUser;
   const currentUserId = currentUser.uid;
-  const fetchGroups = async () => {
-    try {
-      // Fetch all groups from Firestore
-      const groupsCollection = collection(FIREBASE_DB, "groups");
-      const groupsSnapshot = await getDocs(groupsCollection);
-      const groupsData = groupsSnapshot.docs.map((doc) => ({
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(FIREBASE_DB, "groups"), (snapshot) => {
+      const updatedGroups = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-        notVisible: true, // Set initially to true for all groups
       }));
-
-      // Filter out groups where the user is a member
-      const userGroups = groupsData.map((group) => {
-        // Check if the user's ID exists in the `members` array of the group
-        const isVisible = group.members.some(
-          (member) => member.userId === currentUserId
-        );
-        // Update the `notVisible` property based on visibility
-        group.notVisible = !isVisible;
-        return group;
-      });
-
-      // Set the filtered groups in the state
-      setGroups(userGroups);
-    } catch (error) {
-      console.error("Error fetching groups:", error);
-    }
-  };
-  console.log(currentUserId);
-  useEffect(() => {
-    const unsubscribe = onSnapshot(
-      collection(FIREBASE_DB, "groups"),
-      (snapshot) => {
-        snapshot.docChanges().forEach((change) => {
-          if (change.type === "added") {
-            fetchGroups();
-          }
-        });
-      }
-    );
+      setGroups(updatedGroups);
+    });
 
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    fetchGroups();
-  }, []);
-  console.log(groups);
-  const handleGroupPress = async (group) => {
-    try {
-      // Filter out tasks where the user's ID matches inside the `members` array
-      const userTasks = group;
-      console.log(group)
-      navigation.navigate("Task", {
-        groupName: group.name,
-        tasks: userTasks, // Pass the filtered tasks to TaskPage
-        isManager: true, // Assuming the user is a manager, you can change this based on your logic
-        available: [], // Add logic to fetch available tasks for the group
-        past: [], // Add logic to fetch past tasks for the group
-        groupId: group.id, // Pass the group ID to TaskPage
-        members:group.members
-      });
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-    }
+  const handleGroupPress = (group) => {
+    navigation.navigate("Task", {
+      groupName: group.name,
+      tasks: group, // Pass the whole group object
+      isManager: true,
+      available: [],
+      past: [],
+      groupId: group.id,
+      members: group.members,
+    });
   };
+
   const joinExistingGroup = async () => {
-    console.log(groups);
-    console.log(groupCode);
     const group = groups.find((group) => group.code === groupCode);
     if (group) {
-      // Add the user's ID to the members array of the group
       const groupDocRef = doc(FIREBASE_DB, "groups", group.id);
       await updateDoc(groupDocRef, {
-        members: [...group.members, { role: "student", userId: currentUserId,score:0 }], // Replace "userID" with the actual user ID
+        members: [
+          ...group.members,
+          { role: "student", userId: currentUserId, score: 0 },
+        ],
       });
-      setModalVisible(false); // Close the modal
-      setGroupCode(""); // Clear the group code input field
+      setModalVisible(false);
+      setGroupCode("");
     } else {
-      // Handle case when group code is not found
       alert("Group code not found. Please enter a valid code.");
     }
   };
+ 
+  
 
   const createNewGroup = () => {
     navigation.navigate("CreateGroup");
@@ -164,7 +123,7 @@ const GroupsScreen = ({ navigation }) => {
       {/* Main content */}
       <View style={styles.content}>
         {/* Display list of groups */}
-        {console.log(groups)}
+        {console.log(groups.notVisible)}
         {groups
           .filter((val) => !val.notVisible)
           .map((group) => (
