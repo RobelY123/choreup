@@ -10,6 +10,7 @@ import {
   FlatList,
   TouchableOpacity,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import {
   collection,
   addDoc,
@@ -27,6 +28,7 @@ const NewTaskModal = ({ visible, onClose, id }) => {
   const [description, setDescription] = useState("");
   const [reward, setReward] = useState("");
   const [time, setTime] = useState(new Date());
+  const navigation = useNavigation();
   const generateCode = (length) => {
     const characters =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -133,6 +135,7 @@ const TaskPage = ({ route }) => {
   const [tasks, setTasks] = useState([]);
   const { groupName, isManager, members } = route.params;
 
+  const navigation = useNavigation();
   useEffect(() => {
     const fetchTasks = async () => {
       try {
@@ -165,6 +168,13 @@ const TaskPage = ({ route }) => {
     return taskTime > Date.now(); // Check if task time is in the future
   };
 
+  const handleStorePress = () => {
+    navigation.navigate("Store", {
+      groupName: groupName,
+      isManager: isManager,
+    });
+  };
+
   // Split tasks into active and past categories
   const activeTasks = tasks.filter((task) => isTaskActive(task));
   const pastTasks = tasks.filter((task) => !isTaskActive(task));
@@ -176,8 +186,9 @@ const TaskPage = ({ route }) => {
 console.log(activeTasks)
   return (
     <View style={styles.container}>
+      <View style={styles.flex}>
       <Text style={styles.title}>{groupName} Chores</Text>
-
+      <Button style={styles.storeBtn} title="Store" onPress={handleStorePress} /></View>
       <Text style={styles.subhead}>Active Chores</Text>
       {activeTasks.length > 0 ? (
         <FlatList
@@ -247,6 +258,15 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     borderColor: "#0079BF",
+  },
+  storeBtn: {
+    flex: 1,
+    
+  },
+  flex:{
+    display:'flex',
+    flexDirection:'row',
+    justifyContent:'space-between',
   },
   input: {
     height: 40,
