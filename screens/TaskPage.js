@@ -16,6 +16,8 @@ import {
   doc,
   updateDoc,
   getDocs,
+  query,
+  where,
 } from "firebase/firestore";
 import { FIREBASE_DB } from "../config/firebase";
 import { format } from "date-fns";
@@ -43,7 +45,7 @@ const NewTaskModal = ({ visible, onClose, id }) => {
         description,
         reward: parseInt(reward),
         time: new Date(time).toISOString(),
-        id:generateCode(8)
+        id: generateCode(8),
       };
 
       // Add the new task to the tasks/chores array of the group
@@ -126,28 +128,23 @@ const NewTaskModal = ({ visible, onClose, id }) => {
   );
 };
 const TaskPage = ({ route }) => {
+  // State variables
   const [isNewTaskModalVisible, setIsNewTaskModalVisible] = useState(false);
-  const { groupName, isManager, tasks: taskss } = route.params;
-  const handleCreateNewTask = () => {
-    setIsNewTaskModalVisible(true);
-  };
-  const [tasks, setTasks] = useState(taskss);
+  const [tasks, setTasks] = useState([]);
+  const { groupName, isManager, members } = route.params;
+
   useEffect(() => {
     const fetchTasks = async () => {
       try {
         const tasksCollection = collection(FIREBASE_DB, "groups");
-        const tasksQuery = query(
-          tasksCollection,
-          where("name", "==", groupName)
-        );
+        const tasksQuery = query(tasksCollection, where("name", "==", groupName));
         const tasksSnapshot = await getDocs(tasksQuery);
         const groupData = tasksSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
         if (groupData.length > 0) {
-          console.log(groupData);
-          setTasks(groupData[0] || []);
+          setTasks(groupData[0].chores || []); // Assuming chores is the array you're interested in
         } else {
           setTasks([]);
         }
@@ -155,59 +152,96 @@ const TaskPage = ({ route }) => {
         console.error("Error fetching tasks:", error);
       }
     };
-    fetchTasks();
-  }, [isNewTaskModalVisible]);
-  console.log(tasks);
-  console.log("tasks");
+
+    fetchTasks(); // Fetch tasks initially
+  }, [groupName]); // Fetch tasks when groupName changes
+
+  // Function to check if a task is active or past
+  const isTaskActive = (task) => {
+    const taskTime =
+      typeof task.time === "object"
+        ? task.time.seconds * 1000 + task.time.nanoseconds / 1000000
+        : new Date(task.time).getTime();
+    return taskTime > Date.now(); // Check if task time is in the future
+  };
+
+  // Split tasks into active and past categories
+  const activeTasks = tasks.filter((task) => isTaskActive(task));
+  const pastTasks = tasks.filter((task) => !isTaskActive(task));
+
+  // Function to handle creating a new task
+  const handleCreateNewTask = () => {
+    setIsNewTaskModalVisible(true);
+  };
+console.log(activeTasks)
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <Text style={styles.title}>{groupName} Chores</Text>
+
       <Text style={styles.subhead}>Active Chores</Text>
-      <ScrollView horizontal={true}>
-        {tasks.chores.length === 0 ? (
-          <Text>No Available Tasks</Text>
-        ) : (
-          <FlatList
-            style={styles.flatList}
-            data={tasks.chores}
-            renderItem={({ item }) => (
-              <View style={styles.taskItem}>
-                <Text style={styles.taskName}>{item.title}</Text>
+      {activeTasks.length > 0 ? (
+        <FlatList
+          style={styles.flatList}
+          data={activeTasks}
+          renderItem={({ item }) => (
+            <View style={styles.taskItem}>
+                <Text style={styles.taskName}>{item.name}</Text>
                 <Text style={styles.taskDescription}>{item.description}</Text>
                 <Text style={styles.taskReward}>Rewards: ★{item.reward}</Text>
                 <Text style={styles.taskDue}>
-                  Complete by:{" "}
-                  {console.log(item)}
+                  Complete by: {console.log(item.time)}
+                  {console.log(
+                    typeof item.time == "object"
+                      ? item.time.seconds * 1000 +
+                          item.time.nanoseconds / 1000000
+                      : item.time
+                  )}
                   {format(
                     new Date(
-                      item.time.seconds * 1000 + item.time.nanoseconds / 1000000
+                      typeof item.time == "object"
+                      ? item.time.seconds * 1000 +
+                          item.time.nanoseconds / 1000000
+                      : item.time
                     ),
                     "MMMM dd, yyyy hh:mm a"
                   )}
                 </Text>
               </View>
-            )}
-            keyExtractor={(item) => {
-              item?.id?.toString();
-            }}
-          />
-        )}
-      </ScrollView>
-      {isManager ? (
-        <Button title="Create New Chore" onPress={handleCreateNewTask} />
-      ) : null}
+          )}
+          keyExtractor={(item) => item.id?.toString()}
+        />
+      ) : (
+        <Text>No Active Tasks</Text>
+      )}
+
+      <Text style={styles.subhead}>Past Chores</Text>
+      {pastTasks.length > 0 ? (
+        <FlatList
+          style={styles.flatList}
+          data={pastTasks}
+          renderItem={({ item }) => (
+            <View style={styles.taskItem}>{/* Render past tasks here */}</View>
+          )}
+          keyExtractor={(item) => item.id?.toString()}
+        />
+      ) : (
+        <Text>No Past Tasks</Text>
+      )}
+
+      {isManager && (
+        <Button title="Create New Chore" onPress={() => setIsNewTaskModalVisible(true)} />
+      )}
+
       <NewTaskModal
         id={tasks}
         visible={isNewTaskModalVisible}
         onClose={() => setIsNewTaskModalVisible(false)}
       />
-      <Text> </Text>
-      <Text> </Text>
-      <Text> </Text>
-    </ScrollView>
+
+      <View style={{ marginBottom: 20 }}></View>
+    </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

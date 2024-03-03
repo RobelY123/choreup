@@ -15,6 +15,7 @@ import {
   updateDoc,
   query,
   where,
+  onSnapshot,
 } from "firebase/firestore";
 import { FIREBASE_AUTH, FIREBASE_DB } from "../config/firebase"; // Import your Firebase Firestore instance
 
@@ -25,36 +26,51 @@ const GroupsScreen = ({ navigation }) => {
 
   const currentUser = FIREBASE_AUTH.currentUser;
   const currentUserId = currentUser.uid;
+  const fetchGroups = async () => {
+    try {
+      // Fetch all groups from Firestore
+      const groupsCollection = collection(FIREBASE_DB, "groups");
+      const groupsSnapshot = await getDocs(groupsCollection);
+      const groupsData = groupsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        notVisible: true, // Set initially to true for all groups
+      }));
+
+      // Filter out groups where the user is a member
+      const userGroups = groupsData.map((group) => {
+        // Check if the user's ID exists in the `members` array of the group
+        const isVisible = group.members.some(
+          (member) => member.userId === currentUserId
+        );
+        // Update the `notVisible` property based on visibility
+        group.notVisible = !isVisible;
+        return group;
+      });
+
+      // Set the filtered groups in the state
+      setGroups(userGroups);
+    } catch (error) {
+      console.error("Error fetching groups:", error);
+    }
+  };
   console.log(currentUserId);
   useEffect(() => {
-    const fetchGroups = async () => {
-      try {
-        // Fetch all groups from Firestore
-        const groupsCollection = collection(FIREBASE_DB, "groups");
-        const groupsSnapshot = await getDocs(groupsCollection);
-        const groupsData = groupsSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-          notVisible: true, // Set initially to true for all groups
-        }));
-
-        // Filter out groups where the user is a member
-        const userGroups = groupsData.map((group) => {
-          // Check if the user's ID exists in the `members` array of the group
-          const isVisible = group.members.some(
-            (member) => member.userId === currentUserId
-          );
-          // Update the `notVisible` property based on visibility
-          group.notVisible = !isVisible;
-          return group;
+    const unsubscribe = onSnapshot(
+      collection(FIREBASE_DB, "groups"),
+      (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === "added") {
+            fetchGroups();
+          }
         });
-
-        // Set the filtered groups in the state
-        setGroups(userGroups);
-      } catch (error) {
-        console.error("Error fetching groups:", error);
       }
-    };
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
     fetchGroups();
   }, []);
   console.log(groups);
@@ -62,7 +78,7 @@ const GroupsScreen = ({ navigation }) => {
     try {
       // Filter out tasks where the user's ID matches inside the `members` array
       const userTasks = group;
-
+      console.log(group)
       navigation.navigate("Task", {
         groupName: group.name,
         tasks: userTasks, // Pass the filtered tasks to TaskPage
@@ -70,6 +86,7 @@ const GroupsScreen = ({ navigation }) => {
         available: [], // Add logic to fetch available tasks for the group
         past: [], // Add logic to fetch past tasks for the group
         groupId: group.id, // Pass the group ID to TaskPage
+        members:group.members
       });
     } catch (error) {
       console.error("Error fetching tasks:", error);
@@ -83,7 +100,7 @@ const GroupsScreen = ({ navigation }) => {
       // Add the user's ID to the members array of the group
       const groupDocRef = doc(FIREBASE_DB, "groups", group.id);
       await updateDoc(groupDocRef, {
-        members: [...group.members, { role: "student", userId: currentUserId }], // Replace "userID" with the actual user ID
+        members: [...group.members, { role: "student", userId: currentUserId,score:0 }], // Replace "userID" with the actual user ID
       });
       setModalVisible(false); // Close the modal
       setGroupCode(""); // Clear the group code input field
@@ -147,6 +164,7 @@ const GroupsScreen = ({ navigation }) => {
       {/* Main content */}
       <View style={styles.content}>
         {/* Display list of groups */}
+        {console.log(groups)}
         {groups
           .filter((val) => !val.notVisible)
           .map((group) => (
