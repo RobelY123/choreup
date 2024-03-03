@@ -14,6 +14,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth"; // Import Firebase 
 import { FIREBASE_AUTH, FIREBASE_DB } from "./config/firebase";
 import CreateGroupScreen from "./screens/CreateGroupScreen";
 import { doc, getDoc } from "firebase/firestore";
+import HomeScreen2 from "./screens/HomeScreen2";
 
 const Stack = createStackNavigator();
 
@@ -50,7 +51,7 @@ const CustomHeader = ({ navigation, route, user, pfp }) => {
           />
         </TouchableOpacity>
       ) : (
-       ""
+        ""
       )}
       <Text style={styles.screenName}>{name}</Text>
     </View>
@@ -58,11 +59,10 @@ const CustomHeader = ({ navigation, route, user, pfp }) => {
 };
 
 const App = () => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(NaN);
   const [profilePic, setProfilePic] = useState("default");
-
   // Other code remains unchanged
-
+  console.log(user);
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, (user) => {
       // Call setUser function to update the user state
@@ -113,7 +113,19 @@ const App = () => {
           })}
         />
         <Stack.Screen name="Profile" component={ProfileScreen} />
-        <Stack.Screen name="Home"  component={HomeScreen} initialParams={{user}} />
+        {user ? (
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen2}
+            initialParams={{ user: user }}
+          />
+        ) : (
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            initialParams={{ user: user }}
+          />
+        )}
         <Stack.Screen name="Calendar" component={CalendarScreen} />
         <Stack.Screen
           name="Groups"
@@ -124,19 +136,19 @@ const App = () => {
         />
         <Stack.Screen name="CreateGroup" component={CreateGroupScreen} />
         {user ? null : (
-    <>
-      <Stack.Screen
-        name="Login"
-        component={LoginScreen}
-        options={{ headerShown: false }} // Hide the header for these screens
-      />
-      <Stack.Screen
-        name="Signup"
-        component={SignupScreen}
-        options={{ headerShown: false }} // Hide the header for these screens
-      />
-    </>
-  )}
+          <>
+            <Stack.Screen
+              name="Login"
+              component={LoginScreen}
+              options={{ headerShown: false }} // Hide the header for these screens
+            />
+            <Stack.Screen
+              name="Signup"
+              component={SignupScreen}
+              options={{ headerShown: false }} // Hide the header for these screens
+            />
+          </>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );

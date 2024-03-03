@@ -17,7 +17,6 @@ const HomeScreen = (props) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation();
 
-  const { user } = props.route.params;
   const handleEmailChange = (text) => {
     setEmail(text);
     setIsValidEmail(validateEmail(text));
@@ -51,21 +50,17 @@ const HomeScreen = (props) => {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior="position" enabled>
+    <KeyboardAvoidingView style={styles.container} behavior="padding">
       <Image
         source={require("../assets/logo.png")}
         style={styles.logo}
         resizeMode="contain"
       />
-      <Image
-        source={require("../assets/ChoreUpLogo.png")}
-        style={styles.centerLogo}
-        resizeMode="contain"
-      />
-      <Text style={styles.loginText}>Login or Sign Up</Text>
-      {user ? (
-        <Button title="Go to Groups" />
-      ) : (
+      <View style={styles.middleContent}>
+        <Text style={styles.middleText}>Welcome to ChoreUp!</Text>
+        <Text style={styles.middleText}>
+          Enter your email to get started or to login.
+        </Text>
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -82,39 +77,39 @@ const HomeScreen = (props) => {
             )}
           </Animated.View>
         </View>
-      )}
+      </View>
     </KeyboardAvoidingView>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
-    marginBottom: 70,
   },
   logo: {
-    width: 350, // Adjust size as needed
-    marginTop: -150,
-    marginBottom: 100,
+    width: 250,
+    marginBottom: 20,
   },
   centerLogo: {
-    width: 250,
-    height: 250,
-    marginHorizontal: 50,
+    width: 200,
+    height: 200,
+    marginBottom: 20,
   },
-  loginText: {
-    marginRight: "auto",
-    fontSize: 20,
-    marginBottom: 5,
-    bottom: -70,
+  middleContent: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  middleText: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 10,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
-    bottom: -70,
   },
   input: {
     flex: 1,
@@ -125,18 +120,9 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     color: "black",
     paddingHorizontal: 10,
+    marginRight: 10,
   },
-  nextButton: {
-    marginLeft: 10,
-  },
-  middleContent: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  middleText: {
-    fontSize: 16,
-    textAlign: "center",
-  },
+  nextButton: {},
 });
 
 export default HomeScreen;
