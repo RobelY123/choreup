@@ -19,11 +19,12 @@ import {
   getDocs,
   query,
   where,
+  getDoc,
 } from "firebase/firestore";
-import { FIREBASE_DB } from "../config/firebase";
+import { FIREBASE_AUTH, FIREBASE_DB } from "../config/firebase";
 import { format } from "date-fns";
 import DateTimePicker from "@react-native-community/datetimepicker";
-const NewTaskModal = ({ visible, onClose, id }) => {
+const NewTaskModal = ({ visible, onClose, fetchTasks, groupId }) => {
   const [taskName, setTaskName] = useState("");
   const [description, setDescription] = useState("");
   const [reward, setReward] = useState("");
@@ -41,19 +42,26 @@ const NewTaskModal = ({ visible, onClose, id }) => {
     return result;
   };
   const handleCreateTask = async () => {
-    try {
-      const newTask = {
-        name: taskName,
-        description,
-        reward: parseInt(reward),
-        time: new Date(time).toISOString(),
-        id: generateCode(8),
-      };
+    const newTask = {
+      name: taskName,
+      description,
+      reward: parseInt(reward),
+      time: new Date(time).toISOString(),
+      id: generateCode(8),
+    };
 
-      // Add the new task to the tasks/chores array of the group
-      const groupDocRef = doc(FIREBASE_DB, "groups", id.id);
+    try {
+      // Fetch current tasks array from Firestore
+      const groupDocRef = doc(FIREBASE_DB, "groups", groupId);
+      const groupDocSnap = await getDoc(groupDocRef);
+      const groupData = groupDocSnap.data();
+
+      // Update tasks array with the new task
+      const updatedTasks = [...(groupData.chores || []), newTask];
+
+      // Update the Firestore document with the updated tasks array
       await updateDoc(groupDocRef, {
-        chores: [...id.chores, newTask],
+        chores: updatedTasks,
       });
 
       // Reset input fields
@@ -64,11 +72,13 @@ const NewTaskModal = ({ visible, onClose, id }) => {
 
       // Close the modal
       onClose();
+
+      // Fetch updated tasks
+      fetchTasks();
     } catch (error) {
       console.error("Error adding task: ", error);
     }
   };
-
   const onChangeDate = (event, selectedDate) => {
     console.log(selectedDate);
     if (selectedDate) {
@@ -133,32 +143,33 @@ const TaskPage = ({ route }) => {
   // State variables
   const [isNewTaskModalVisible, setIsNewTaskModalVisible] = useState(false);
   const [tasks, setTasks] = useState([]);
-  const { groupName, isManager, members } = route.params;
+  const { groupName, isManager, members, groupId } = route.params;
 
+  const fetchTasks = async () => {
+    try {
+      const tasksCollection = collection(FIREBASE_DB, "groups");
+      const tasksQuery = query(tasksCollection, where("name", "==", groupName));
+      const tasksSnapshot = await getDocs(tasksQuery);
+      const groupData = tasksSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      console.log(groupData);
+      if (groupData.length > 0) {
+        setTasks(groupData[0].chores || []); // Assuming chores is the array you're interested in
+      } else {
+        setTasks([]);
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
   const navigation = useNavigation();
   useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const tasksCollection = collection(FIREBASE_DB, "groups");
-        const tasksQuery = query(tasksCollection, where("name", "==", groupName));
-        const tasksSnapshot = await getDocs(tasksQuery);
-        const groupData = tasksSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        if (groupData.length > 0) {
-          setTasks(groupData[0].chores || []); // Assuming chores is the array you're interested in
-        } else {
-          setTasks([]);
-        }
-      } catch (error) {
-        console.error("Error fetching tasks:", error);
-      }
-    };
-
     fetchTasks(); // Fetch tasks initially
   }, [groupName]); // Fetch tasks when groupName changes
-
+  const currentUser = FIREBASE_AUTH.currentUser;
+  const currentUserId = currentUser.uid;
   // Function to check if a task is active or past
   const isTaskActive = (task) => {
     const taskTime =
@@ -172,6 +183,8 @@ const TaskPage = ({ route }) => {
     navigation.navigate("Store", {
       groupName: groupName,
       isManager: isManager,
+      member: members.find((val) => val.userId === currentUserId),
+      groupId,
     });
   };
 
@@ -183,12 +196,25 @@ const TaskPage = ({ route }) => {
   const handleCreateNewTask = () => {
     setIsNewTaskModalVisible(true);
   };
-console.log(activeTasks)
+  console.log();
   return (
     <View style={styles.container}>
       <View style={styles.flex}>
-      <Text style={styles.title}>{groupName} Chores</Text>
-      <Button style={styles.storeBtn} title="Store" onPress={handleStorePress} /></View>
+        <Text style={styles.title}>{groupName} Chores</Text>
+        <Button
+          style={styles.storeBtn}
+          title="Store"
+          onPress={handleStorePress}
+        />
+      </View>
+      {isManager ? (
+        ""
+      ) : (
+        <Text style={{ marginBottom: 10 }}>
+          Your Rewards: ★
+          {members.find((val) => val.userId === currentUserId)?.score}
+        </Text>
+      )}
       <Text style={styles.subhead}>Active Chores</Text>
       {activeTasks.length > 0 ? (
         <FlatList
@@ -196,30 +222,29 @@ console.log(activeTasks)
           data={activeTasks}
           renderItem={({ item }) => (
             <View style={styles.taskItem}>
-                <Text style={styles.taskName}>{item.name}</Text>
-                <Text style={styles.taskDescription}>{item.description}</Text>
-                <Text style={styles.taskReward}>Rewards: ★{item.reward}</Text>
-                <Text style={styles.taskDue}>
-                  Complete by: {console.log(item.time)}
-                  {console.log(
+              <Text style={styles.taskName}>{item.name}</Text>
+              <Text style={styles.taskDescription}>{item.description}</Text>
+              <Text style={styles.taskReward}>Rewards: ★{item.reward}</Text>
+              <Text style={styles.taskDue}>
+                Complete by: {console.log(item.time)}
+                {console.log(
+                  typeof item.time == "object"
+                    ? item.time.seconds * 1000 + item.time.nanoseconds / 1000000
+                    : item.time
+                )}
+                {format(
+                  new Date(
                     typeof item.time == "object"
                       ? item.time.seconds * 1000 +
-                          item.time.nanoseconds / 1000000
+                        item.time.nanoseconds / 1000000
                       : item.time
-                  )}
-                  {format(
-                    new Date(
-                      typeof item.time == "object"
-                      ? item.time.seconds * 1000 +
-                          item.time.nanoseconds / 1000000
-                      : item.time
-                    ),
-                    "MMMM dd, yyyy hh:mm a"
-                  )}
-                </Text>
-              </View>
+                  ),
+                  "MMMM dd, yyyy hh:mm a"
+                )}
+              </Text>
+            </View>
           )}
-          keyExtractor={(item) => item.id?.toString()}
+          keyExtractor={(item) => parseInt(Math.random() * 1000000)}
         />
       ) : (
         <Text>No Active Tasks</Text>
@@ -240,11 +265,15 @@ console.log(activeTasks)
       )}
 
       {isManager && (
-        <Button title="Create New Chore" onPress={() => setIsNewTaskModalVisible(true)} />
+        <Button
+          title="Create New Chore"
+          onPress={() => setIsNewTaskModalVisible(true)}
+        />
       )}
 
       <NewTaskModal
-        id={tasks}
+        groupId={groupId}
+        fetchTasks={fetchTasks}
         visible={isNewTaskModalVisible}
         onClose={() => setIsNewTaskModalVisible(false)}
       />
@@ -261,12 +290,11 @@ const styles = StyleSheet.create({
   },
   storeBtn: {
     flex: 1,
-    
   },
-  flex:{
-    display:'flex',
-    flexDirection:'row',
-    justifyContent:'space-between',
+  flex: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   input: {
     height: 40,

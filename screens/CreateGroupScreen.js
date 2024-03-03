@@ -14,8 +14,6 @@ const CreateGroupScreen = ({ navigation }) => {
   const [description, setDescription] = useState("");
   const [members, setMembers] = useState("");
   const createNewGroup = async () => {
-    var date = new Date();
-    date.setDate(date.getDate() + 5).toLocaleString();
     try {
       const auth = FIREBASE_AUTH;
       const currentUser = auth.currentUser;
@@ -25,20 +23,39 @@ const CreateGroupScreen = ({ navigation }) => {
         name: groupName,
         description: description,
         code: code,
-        chores: [
-          {
-            id: generateCode(6), // Generate a unique ID for the chore
-            name: "Sample Name",
-            description: "Sample Desc",
-            reward: 150,
-            time: date, // Add time for the chore
-          },
-        ],
+        chores: [], // No chores initially
         members: [
           {
             userId: currentUserId,
             role: "manager", // Set the role for the current user
           },
+        ],
+        // Sample store items
+        storeItems: [
+          {
+            category: "Electronics",
+            items: [
+              { id: 1, name: "Smartphone", price: 500, description: "High-end smartphone" },
+              { id: 2, name: "Laptop", price: 1000, description: "Powerful laptop for productivity" },
+              { id: 3, name: "Tablet", price: 300, description: "Portable tablet for entertainment" },
+            ],
+          },
+          {
+            category: "Books",
+            items: [
+              { id: 4, name: "Fiction Novel", price: 20, description: "Best-selling fiction novel" },
+              { id: 5, name: "Programming Guide", price: 50, description: "Comprehensive programming guide" },
+              { id: 6, name: "Self-Help Book", price: 30, description: "Book for personal development" },
+            ],
+          },
+          {
+            category: "Cash",
+            items: [
+              { id: 7, name: "10$", price: 20, description: "" },
+              { id: 8, name: "50$", price: 100, description: "" },
+              { id: 9, name: "100$$", price: 200, description: "" },
+            ],
+          }
         ],
       };
 

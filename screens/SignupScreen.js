@@ -14,13 +14,12 @@ import { signup } from "./auth"; // Import the signup function
 
 const SignupScreen = ({ navigation, route }) => {
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(route.params?.email||"");
   const [password, setPassword] = useState("");
-
   const handleSignup = async () => {
     try {
       // Call the signup function with username, email, and password
-      await signup(email, password, username,"default");
+      await signup(email, password, username, "default");
       Alert.alert("Signup Successful", "You have successfully signed up!");
       // Navigate to the next screen or perform any other actions after signup
     } catch (error) {

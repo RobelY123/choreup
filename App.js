@@ -16,7 +16,7 @@ import { FIREBASE_AUTH, FIREBASE_DB } from "./config/firebase";
 import CreateGroupScreen from "./screens/CreateGroupScreen";
 import { doc, getDoc } from "firebase/firestore";
 import HomeScreen2 from "./screens/HomeScreen2";
-
+import { MaterialIcons } from "@expo/vector-icons";
 const Stack = createStackNavigator();
 
 const CustomHeader = ({ navigation, route, user, pfp }) => {
@@ -37,9 +37,11 @@ const CustomHeader = ({ navigation, route, user, pfp }) => {
 
   return (
     <View style={styles.header}>
-      <TouchableOpacity onPress={goToHome}>
-        <Text style={styles.homeButton}>Home</Text>
-      </TouchableOpacity>
+      {navigation.canGoBack() && (
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <MaterialIcons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
+      )}
       {user ? (
         <TouchableOpacity onPress={goToSettings}>
           <Image
@@ -52,7 +54,7 @@ const CustomHeader = ({ navigation, route, user, pfp }) => {
           />
         </TouchableOpacity>
       ) : (
-        ""
+        <Text></Text>
       )}
       <Text style={styles.screenName}>{name}</Text>
     </View>

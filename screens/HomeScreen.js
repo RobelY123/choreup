@@ -37,7 +37,7 @@ const HomeScreen = (props) => {
 
   const handleNextPress = async () => {
     try {
-      navigation.navigate("Login", { email: email });
+      navigation.navigate("Signup", { email: email });
     } catch (error) {
       console.error("Error signing in:", error.message);
       // Handle sign-in error

@@ -27,22 +27,40 @@ const GroupsScreen = ({ navigation }) => {
   const currentUser = FIREBASE_AUTH.currentUser;
   const currentUserId = currentUser.uid;
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(FIREBASE_DB, "groups"), (snapshot) => {
-      const updatedGroups = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setGroups(updatedGroups);
-    });
+    const unsubscribe = onSnapshot(
+      collection(FIREBASE_DB, "groups"),
+      (snapshot) => {
+        console.log(snapshot.docs);
+        const updatedGroups = snapshot.docs.map((doc) => {
+          const data = doc.data(); // Access the data within the doc object
+          const groupMembers = data.members || []; // Ensure members array exists
+
+          // Check if the current user is a member of the group
+          const notVisible = groupMembers.find(
+            (val) => val.userId === currentUserId
+          );
+          console.log(notVisible)
+          return {
+            id: doc.id,
+            notVisible: !notVisible?true:false,
+            ...data, // Spread the rest of the data
+          };
+        });
+        setGroups(updatedGroups);
+      }
+    );
 
     return () => unsubscribe();
-  }, []);
+  }, [groups]);
 
   const handleGroupPress = (group) => {
+    console.log(group.members);
     navigation.navigate("Task", {
       groupName: group.name,
       tasks: group, // Pass the whole group object
-      isManager: true,
+      isManager:
+        group.members.find((val) => val.userId == currentUserId)?.role ==
+        "manager",
       available: [],
       past: [],
       groupId: group.id,
@@ -66,8 +84,6 @@ const GroupsScreen = ({ navigation }) => {
       alert("Group code not found. Please enter a valid code.");
     }
   };
- 
-  
 
   const createNewGroup = () => {
     navigation.navigate("CreateGroup");
@@ -123,7 +139,7 @@ const GroupsScreen = ({ navigation }) => {
       {/* Main content */}
       <View style={styles.content}>
         {/* Display list of groups */}
-        {console.log(groups.notVisible)}
+        {console.log(groups[0])}
         {groups
           .filter((val) => !val.notVisible)
           .map((group) => (
