@@ -23,9 +23,9 @@ const GroupsScreen = ({ navigation }) => {
     navigation.navigate("Task", {
       groupName: group.name,
       tasks: [
-        { id: 1, title: "Task 1", description: "Description of Task 1" },
-        { id: 2, title: "Task 2", description: "Description of Task 2" },
-        { id: 3, title: "Task 3", description: "Description of Task 3" },
+        { id: 1, title: "Task 1", description: "Description of Task 1", reward: 150, due: "11:59" },
+        { id: 2, title: "Task 2", description: "Description of Task 2", reward: 150, due: "11:59" },
+        { id: 3, title: "Task 3", description: "Description of Task 3", reward: 150, due: "11:59" },
       ], // You can pass tasks data here if needed
       isManager: true, // Assuming the user is a manager, you can change this based on your logic
     });

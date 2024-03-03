@@ -18,6 +18,8 @@ const TaskPage = ({ route }) => {
           <View style={styles.taskItem}>
             <Text style={styles.taskName}>{item.name}</Text>
             <Text>{item.description}</Text>
+            <Text>Rewards: ★{item.reward}</Text>
+            <Text>Complete by: {item.due}</Text>
           </View>
         )}
         keyExtractor={(item) => item.id.toString()}
