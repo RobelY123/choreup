@@ -23,11 +23,18 @@ const GroupsScreen = ({ navigation }) => {
     navigation.navigate("Task", {
       groupName: group.name,
       tasks: [
+      ], // You can pass tasks data here if needed
+      isManager: true, // Assuming the user is a manager, you can change this based on your logic
+      available: [
         { id: 1, title: "Task 1", description: "Description of Task 1", reward: 150, due: "11:59" },
         { id: 2, title: "Task 2", description: "Description of Task 2", reward: 150, due: "11:59" },
         { id: 3, title: "Task 3", description: "Description of Task 3", reward: 150, due: "11:59" },
-      ], // You can pass tasks data here if needed
-      isManager: true, // Assuming the user is a manager, you can change this based on your logic
+      ],
+      past: [
+        { id: 1, title: "Task 1", description: "Description of Task 1", reward: 150, due: "11:59" },
+        { id: 2, title: "Task 2", description: "Description of Task 2", reward: 150, due: "11:59" },
+        { id: 3, title: "Task 3", description: "Description of Task 3", reward: 150, due: "11:59" },
+      ]
     });
   };
   const joinExistingGroup = () => {
@@ -71,18 +78,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    borderColor: "#0079BF",
   },
   content: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    borderColor: "#0079BF",
   },  buttonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
   },
   button: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#0079BF",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -94,11 +103,11 @@ const styles = StyleSheet.create({
   },
   groupContainer: {
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#0079BF",
     borderRadius: 5,
     padding: 10,
     marginVertical: 5,
-    width: "80%",
+    width: 300,
   },
   groupName: {
     fontWeight: "bold",
