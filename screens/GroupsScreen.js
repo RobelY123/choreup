@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Button } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 const sampleGroups = [
   {
@@ -17,25 +17,14 @@ const sampleGroups = [
 ];
 
 const GroupsScreen = ({ navigation }) => {
-  const [userName, setUserName] = useState("John Doe"); // Sample user name, replace with actual user data
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [userName, setUserName] = useState("John Doe");
 
-  const handleLogout = () => {
-    // Logic to logout the user
-  };
-
-  const toggleDropdown = () => {
-    setShowDropdown(!showDropdown);
-  };
-
-  const navigateToSettings = () => {
-    navigation.navigate("Settings");
-    toggleDropdown(); // Close dropdown after navigation
-  };
-
-  const navigateToGroups = () => {
-    navigation.navigate("Groups");
-    toggleDropdown(); // Close dropdown after navigation
+  const handleGroupPress = (group) => {
+    navigation.navigate("Task", {
+      groupName: group.name,
+      tasks: [], // You can pass tasks data here if needed
+      isManager: true, // Assuming the user is a manager, you can change this based on your logic
+    });
   };
   const joinExistingGroup = () => {
     // Logic to join an existing group
@@ -46,17 +35,19 @@ const GroupsScreen = ({ navigation }) => {
   };
   return (
     <View style={styles.container}>
-      {/* Banner with user account and dropdown */}
-
       {/* Main content */}
       <View style={styles.content}>
         {/* Display list of groups */}
         {sampleGroups.map((group) => (
-          <View key={group.id} style={styles.groupContainer}>
+          <TouchableOpacity
+            key={group.id}
+            style={styles.groupContainer}
+            onPress={() => handleGroupPress(group)}
+          >
             <Text style={styles.groupName}>{group.name}</Text>
             <Text>{group.description}</Text>
             <Text>Members: {group.members.join(", ")}</Text>
-          </View>
+          </TouchableOpacity>
         ))}
         <View style={styles.buttonsContainer}>
           <TouchableOpacity style={styles.button} onPress={joinExistingGroup}>
@@ -72,51 +63,30 @@ const GroupsScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  buttonsContainer: {
-    flexDirection: "column",
-    gap: "20px",
-    justifyContent: "space-around",
-    marginTop: 20,
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  content: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   button: {
     backgroundColor: "#007bff",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  banner: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 10,
-    backgroundColor: "#f0f0f0",
-    borderColor: "#ccc",
-    borderWidth: 1,
-    width: "100%",
-  },
-  dropdown: {
-    position: "absolute",
-    top: 40,
-    right: 10,
-    backgroundColor: "white",
-    borderRadius: 5,
-    elevation: 3,
-    padding: 5,
-  },
-  content: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  },  buttonsContainer: {
+    flexDirection: "column",
+    gap: "20px",
+    justifyContent: "space-around",
+    marginTop: 20,
   },
   groupContainer: {
     borderWidth: 1,
