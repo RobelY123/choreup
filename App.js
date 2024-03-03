@@ -6,6 +6,7 @@ import CalendarScreen from "./screens/CalendarScreen";
 import GroupsScreen from "./screens/GroupsScreen";
 import LoginScreen from "./screens/LoginScreen";
 import SignupScreen from "./screens/SignupScreen";
+import StorePage from "./screens/StorePage";
 import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
 import ProfileScreen from "./screens/ProfileScreen";
 import TaskCreatorScreen from "./screens/TaskCreator";
@@ -126,6 +127,11 @@ const App = () => {
             initialParams={{ user: user }}
           />
         )}
+        <Stack.Screen
+          name="Store"
+          component={StorePage}
+          options={{ headerShown: true }}
+        />
         <Stack.Screen name="Calendar" component={CalendarScreen} />
         <Stack.Screen
           name="Groups"
