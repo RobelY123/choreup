@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     paddingTop: 50,
-    backgroundColor: "#6200EE", // Header background color
+    backgroundColor: "#0079BF", // Header background color
   },
   profilePicture: {
     width: 32,
