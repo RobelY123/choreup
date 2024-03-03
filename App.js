@@ -11,6 +11,26 @@ import ProfileScreen from "./screens/ProfileScreen";
 import TaskCreatorScreen from "./screens/TaskCreator";
 import TaskPage from "./screens/TaskPage";
 
+import { initializeApp } from '@firebase/app';
+import { getFirestore } from '@firebase/firestore';
+import { getAuth } from '@firebase/auth';
+const firebaseConfig = {
+  apiKey: "AIzaSyAJgagjYMfhn2hxAHUqBmzMXwg61Uz1rJY",
+  authDomain: "choreup-f3c99.firebaseapp.com",
+  projectId: "choreup-f3c99",
+  storageBucket: "choreup-f3c99.appspot.com",
+  messagingSenderId: "1018123461263",
+  appId: "1:1018123461263:web:1ad9eebfccb2861c0746fa",
+  measurementId: "G-TH2W7H83LP"
+};
+const firebaseApp = initializeApp(firebaseConfig);
+
+// Initialize Firestore
+const firestore = getFirestore(firebaseApp);
+
+// Initialize Authentication
+const auth = getAuth(firebaseApp);
+
 const Stack = createStackNavigator();
 
 const CustomHeader = ({ navigation, route }) => {
@@ -49,7 +69,7 @@ const App = () => {
           ),
         }}
       >
-      <Stack.Screen name="Task" component={TaskPage} />
+        <Stack.Screen name="Task" component={TaskPage} />
         <Stack.Screen name="TaskCreator" component={TaskCreatorScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />

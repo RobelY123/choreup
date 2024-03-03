@@ -76,7 +76,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-  },  buttonText: {
+  },
+  buttonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
@@ -86,7 +87,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
-  },  buttonsContainer: {
+  },
+  buttonsContainer: {
     flexDirection: "column",
     gap: "20px",
     justifyContent: "space-around",

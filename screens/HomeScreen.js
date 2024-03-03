@@ -1,4 +1,3 @@
-import { useNavigation } from "@react-navigation/native";
 import React, { useState, useRef } from "react";
 import {
   View,
@@ -9,13 +8,15 @@ import {
   Image,
   Animated,
   KeyboardAvoidingView,
-  ScrollView,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import auth from "@react-native-firebase/auth";
 
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = () => {
   const [email, setEmail] = useState("");
-  const [isValidEmail, setIsValidEmail] = useState(true);
+  const [isValidEmail, setIsValidEmail] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const navigation = useNavigation();
 
   const handleEmailChange = (text) => {
     setEmail(text);
@@ -34,28 +35,25 @@ const HomeScreen = ({ navigation }) => {
       }).start();
     }
   };
-  const navigate = new useNavigation();
-  const handleNextPress = () => {
-    if (isValidEmail) {
-      navigation.navigate("Groups");
-    } else {
-      // Handle invalid email input
+
+  const handleNextPress = async () => {
+    try {
+      const userCredential = await auth().signInWithEmailAndPassword(email, "");
+      console.log("User signed in:", userCredential.user.email);
+      navigation.navigate("Tasks");
+    } catch (error) {
+      console.error("Error signing in:", error.message);
+      // Handle sign-in error
     }
   };
 
-  // Function to validate email format
   const validateEmail = (email) => {
-    // Regular expression for basic email validation
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior="position"
-      enabled={true}
-    >
+    <KeyboardAvoidingView style={styles.container} behavior="position" enabled>
       <Image
         source={require("../assets/logo.png")}
         style={styles.logo}
@@ -84,7 +82,6 @@ const HomeScreen = ({ navigation }) => {
     </KeyboardAvoidingView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
