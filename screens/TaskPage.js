@@ -17,9 +17,9 @@ const TaskPage = ({ route }) => {
         renderItem={({ item }) => (
           <View style={styles.taskItem}>
             <Text style={styles.taskName}>{item.name}</Text>
-            <Text>{item.description}</Text>
-            <Text>Rewards: ★{item.reward}</Text>
-            <Text>Complete by: {item.due}</Text>
+            <Text style={styles.taskDescription}>{item.description}</Text>
+            <Text style={styles.taskReward}>Rewards: ★{item.reward}</Text>
+            <Text style={styles.taskDue}>Complete by: {item.due}</Text>
           </View>
         )}
         keyExtractor={(item) => item.id.toString()}
@@ -33,6 +33,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    borderColor: "#0079BF",
   },
   title: {
     fontSize: 24,
