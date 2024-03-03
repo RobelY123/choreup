@@ -1,28 +1,86 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TextInput, Button, Image } from "react-native";
+import { logout } from "./auth"; // Import the logout function
+import { getAuth, updateProfile } from "firebase/auth";
+import { FIREBASE_DB } from "../config/firebase";
+import { doc, getDoc } from "firebase/firestore";
+const ProfileScreen = ({ navigation }) => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [profilePic, setProfilePic] = useState(null);
 
-const ProfileScreen = () => {
-  const [name, setName] = useState("John Doe");
-  const [email, setEmail] = useState("john@example.com");
-  const [profilePic, setProfilePic] = useState(require("../assets/pfp.png"));
+  useEffect(() => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (user) {
+      setEmail(user.email || "");
+      fetchUserData(user.uid);
+    }
+  }, []);
+
+  const fetchUserData = async (email) => {
+    try {
+      const userDocRef = doc(FIREBASE_DB, "users", email);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        setName(userData.username || "");
+        console.log(userData + "e");
+        setProfilePic(userData.profilePictureURL || null);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      // Handle error
+    }
+  };
 
   const handleNameChange = (text) => {
     setName(text);
   };
 
-  const handleEmailChange = (text) => {
-    setEmail(text);
+  const handleSaveChanges = async () => {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (user) {
+        await updateProfile(user, {
+          displayName: name,
+        });
+
+        // Show success message or navigate to another screen
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      // Handle error
+    }
   };
 
-  const handleSaveChanges = () => {
-    // Logic to save changes to the user's profile
+  const handleLogout = async () => {
+    try {
+      await logout();
+      // After successful logout, navigate to the login screen or any other desired screen
+      navigation.navigate("Login");
+    } catch (error) {
+      console.error("Logout Error:", error.message);
+      // Handle logout error
+    }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Profile</Text>
       <View style={styles.profilePicContainer}>
-        <Image source={profilePic} style={styles.profilePic} />
+        <Image
+          source={
+            profilePic && profilePic != "default"
+              ? { uri: profilePic }
+              : require("../assets/pfp.png")
+          }
+          style={styles.profilePic}
+        />
       </View>
       <Text style={styles.loginText}>Username</Text>
       <TextInput
@@ -35,12 +93,11 @@ const ProfileScreen = () => {
       <TextInput
         style={styles.input}
         value={email}
-        onChangeText={handleEmailChange}
-        placeholder="Enter your email"
-        keyboardType="email-address"
-        autoCapitalize="none"
+        placeholder="Email"
+        editable={false} // Disable editing email field
       />
       <Button title="Save Changes" onPress={handleSaveChanges} />
+      <Button title="Logout" onPress={handleLogout} />
     </View>
   );
 };

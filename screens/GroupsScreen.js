@@ -1,102 +1,170 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-
-const sampleGroups = [
-  {
-    id: 1,
-    name: "Group 1",
-    description: "Description of Group 1",
-    members: ["John", "Jane", "Doe"],
-  },
-  {
-    id: 2,
-    name: "Group 2",
-    description: "Description of Group 2",
-    members: ["Alice", "Bob", "Charlie"],
-  },
-];
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+  Button,
+} from "react-native";
+import {
+  collection,
+  getDocs,
+  doc,
+  updateDoc,
+  query,
+  where,
+} from "firebase/firestore";
+import { FIREBASE_AUTH, FIREBASE_DB } from "../config/firebase"; // Import your Firebase Firestore instance
 
 const GroupsScreen = ({ navigation }) => {
-  const [userName, setUserName] = useState("John Doe");
+  const [groups, setGroups] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [groupCode, setGroupCode] = useState("");
 
-  const handleGroupPress = (group) => {
-    navigation.navigate("Task", {
-      groupName: group.name,
-      tasks: [], // You can pass tasks data here if needed
-      isManager: true, // Assuming the user is a manager, you can change this based on your logic
-      available: [
-        {
-          id: 1,
-          title: "Task 1",
-          description: "Description of Task 1",
-          reward: 150,
-          due: "11:59",
-        },
-        {
-          id: 2,
-          title: "Task 2",
-          description: "Description of Task 2",
-          reward: 150,
-          due: "11:59",
-        },
-        {
-          id: 3,
-          title: "Task 3",
-          description: "Description of Task 3",
-          reward: 150,
-          due: "11:59",
-        },
-      ],
-      past: [
-        {
-          id: 1,
-          title: "Task 1",
-          description: "Description of Task 1",
-          reward: 150,
-          due: "11:59",
-        },
-        {
-          id: 2,
-          title: "Task 2",
-          description: "Description of Task 2",
-          reward: 150,
-          due: "11:59",
-        },
-        {
-          id: 3,
-          title: "Task 3",
-          description: "Description of Task 3",
-          reward: 150,
-          due: "11:59",
-        },
-      ],
-    });
+  const currentUser = FIREBASE_AUTH.currentUser;
+  const currentUserId = currentUser.uid;
+  console.log(currentUserId);
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        // Fetch all groups from Firestore
+        const groupsCollection = collection(FIREBASE_DB, "groups");
+        const groupsSnapshot = await getDocs(groupsCollection);
+        const groupsData = groupsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          notVisible: true, // Set initially to true for all groups
+        }));
+
+        // Filter out groups where the user is a member
+        const userGroups = groupsData.map((group) => {
+          // Check if the user's ID exists in the `members` array of the group
+          const isVisible = group.members.some(
+            (member) => member.userId === currentUserId
+          );
+          // Update the `notVisible` property based on visibility
+          group.notVisible = !isVisible;
+          return group;
+        });
+
+        // Set the filtered groups in the state
+        setGroups(userGroups);
+      } catch (error) {
+        console.error("Error fetching groups:", error);
+      }
+    };
+    fetchGroups();
+  }, []);
+  console.log(groups);
+  const handleGroupPress = async (group) => {
+    try {
+      // Filter out tasks where the user's ID matches inside the `members` array
+      const userTasks = group;
+
+      navigation.navigate("Task", {
+        groupName: group.name,
+        tasks: userTasks, // Pass the filtered tasks to TaskPage
+        isManager: true, // Assuming the user is a manager, you can change this based on your logic
+        available: [], // Add logic to fetch available tasks for the group
+        past: [], // Add logic to fetch past tasks for the group
+        groupId: group.id, // Pass the group ID to TaskPage
+      });
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
   };
-  const joinExistingGroup = () => {
-    // Logic to join an existing group
+  const joinExistingGroup = async () => {
+    console.log(groups);
+    console.log(groupCode);
+    const group = groups.find((group) => group.code === groupCode);
+    if (group) {
+      // Add the user's ID to the members array of the group
+      const groupDocRef = doc(FIREBASE_DB, "groups", group.id);
+      await updateDoc(groupDocRef, {
+        members: [...group.members, { role: "student", userId: currentUserId }], // Replace "userID" with the actual user ID
+      });
+      setModalVisible(false); // Close the modal
+      setGroupCode(""); // Clear the group code input field
+    } else {
+      // Handle case when group code is not found
+      alert("Group code not found. Please enter a valid code.");
+    }
   };
 
   const createNewGroup = () => {
-    // Logic to create a new group
+    navigation.navigate("CreateGroup");
+  };
+  const onClose = () => {
+    setModalVisible(!modalVisible);
   };
   return (
     <View style={styles.container}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => onClose()}
+      >
+        <TouchableOpacity
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+          }}
+          activeOpacity={1}
+          onPressOut={() => onClose()} // Close the modal when tapping outside of it
+        >
+          <View
+            style={{
+              backgroundColor: "white",
+              padding: 20,
+              borderRadius: 10,
+              width: 300,
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ marginBottom: 10 }}>Enter the group code:</Text>
+            <TextInput
+              style={{
+                borderWidth: 1,
+                borderColor: "#ccc",
+                borderRadius: 5,
+                padding: 10,
+                marginBottom: 10,
+                width: 200,
+              }}
+              value={groupCode} // Corrected from `code` to `groupCode`
+              onChangeText={setGroupCode} // Corrected from `setCode` to `setGroupCode`
+              placeholder="Group code"
+            />
+            <Button title="Join Group" onPress={joinExistingGroup} />
+          </View>
+        </TouchableOpacity>
+      </Modal>
       {/* Main content */}
       <View style={styles.content}>
         {/* Display list of groups */}
-        {sampleGroups.map((group) => (
-          <TouchableOpacity
-            key={group.id}
-            style={styles.groupContainer}
-            onPress={() => handleGroupPress(group)}
-          >
-            <Text style={styles.groupName}>{group.name}</Text>
-            <Text>{group.description}</Text>
-            <Text>Members: {group.members.join(", ")}</Text>
-          </TouchableOpacity>
-        ))}
+        {groups
+          .filter((val) => !val.notVisible)
+          .map((group) => (
+            <TouchableOpacity
+              key={group.id}
+              style={styles.groupContainer}
+              onPress={() => handleGroupPress(group)}
+            >
+              <Text style={styles.groupName}>{group.name}</Text>
+              <Text>{group.description}</Text>
+              <Text>Code: {group.code}</Text>
+            </TouchableOpacity>
+          ))}
         <View style={styles.buttonsContainer}>
-          <TouchableOpacity style={styles.button} onPress={joinExistingGroup}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => setModalVisible(true)}
+          >
             <Text style={styles.buttonText}>Join Existing Group</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.button} onPress={createNewGroup}>
@@ -148,6 +216,31 @@ const styles = StyleSheet.create({
   },
   groupName: {
     fontWeight: "bold",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    elevation: 5,
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 10,
+  },
+  input: {
+    width: "100%",
+    height: 40,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    marginBottom: 10,
   },
 });
 

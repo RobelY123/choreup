@@ -10,7 +10,6 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import auth from "@react-native-firebase/auth";
 
 const HomeScreen = () => {
   const [email, setEmail] = useState("");
@@ -38,9 +37,7 @@ const HomeScreen = () => {
 
   const handleNextPress = async () => {
     try {
-      const userCredential = await auth().signInWithEmailAndPassword(email, "");
-      console.log("User signed in:", userCredential.user.email);
-      navigation.navigate("Tasks");
+      navigation.navigate("Login", { email: email });
     } catch (error) {
       console.error("Error signing in:", error.message);
       // Handle sign-in error
@@ -70,6 +67,8 @@ const HomeScreen = () => {
           style={styles.input}
           placeholder="Enter your email"
           value={email}
+          autoCompleteType="email"
+          keyboardType="email-address"
           placeholderTextColor="gray"
           onChangeText={handleEmailChange}
         />
