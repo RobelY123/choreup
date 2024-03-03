@@ -22,7 +22,11 @@ const GroupsScreen = ({ navigation }) => {
   const handleGroupPress = (group) => {
     navigation.navigate("Task", {
       groupName: group.name,
-      tasks: [], // You can pass tasks data here if needed
+      tasks: [
+        { id: 1, title: "Task 1", description: "Description of Task 1" },
+        { id: 2, title: "Task 2", description: "Description of Task 2" },
+        { id: 3, title: "Task 3", description: "Description of Task 3" },
+      ], // You can pass tasks data here if needed
       isManager: true, // Assuming the user is a manager, you can change this based on your logic
     });
   };
